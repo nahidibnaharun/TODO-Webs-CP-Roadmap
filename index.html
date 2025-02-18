@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Interactive Todo App</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Link to CSS file -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Advanced Todo App</h1>
+      <div class="header-controls">
+        <span id="currentDate"></span>
+        <button class="toggle-btn" id="modeToggleBtn">Dark Mode</button>
+      </div>
+    </div>
+    <!-- Todo Form -->
+    <div class="todo-form">
+      <input type="text" id="taskInput" placeholder="Enter new task" />
+      <select id="ratingInput">
+        <option value="1">Rating 1</option>
+        <option value="2">Rating 2</option>
+        <option value="3" selected>Rating 3</option>
+        <option value="4">Rating 4</option>
+        <option value="5">Rating 5</option>
+      </select>
+      <input type="date" id="dueDateInput" placeholder="Due Date" />
+      <button id="addTaskBtn">Add Task</button>
+    </div>
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="active">Active</button>
+        <button class="filter-btn" data-filter="completed">Completed</button>
+      </div>
+      <div>
+        <button class="clear-btn" id="clearCompletedBtn">Clear Completed</button>
+        <button class="clear-all-btn" id="clearAllBtn">Clear All</button>
+      </div>
+    </div>
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search tasks..." />
+    </div>
+    <!-- Progress Bar & Task Count -->
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div id="taskCount"></div>
+    <!-- Streak Counter -->
+    <div id="streakCount"></div>
+    <!-- Task List -->
+    <ul id="taskList"></ul>
+    <!-- Charts -->
+    <div class="charts">
+      <div class="chart-box">
+        <h3>Rating Distribution</h3>
+        <canvas id="ratingChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Task Completion</h3>
+        <canvas id="completionChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Daily Completions</h3>
+        <canvas id="streakChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
+  <!-- Link to JS file -->
+  <script src="script.js"></script>
+</body>
+</html>
