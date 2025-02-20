@@ -8,22 +8,26 @@
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
   <!-- Chart.js Library -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Link to CSS file -->
+  <!-- Canvas-Confetti Library for celebration effects -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <!-- External CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Main Container -->
   <div class="container">
     <!-- Header -->
     <div class="header">
       <h1>Advanced Todo App</h1>
       <div class="header-controls">
         <span id="currentDate"></span>
-        <button class="toggle-btn" id="modeToggleBtn">Dark Mode</button>
+        <button class="btn toggle-btn" id="modeToggleBtn" tabindex="0">Dark Mode</button>
       </div>
     </div>
     <!-- Todo Form -->
     <div class="todo-form">
       <input type="text" id="taskInput" placeholder="Enter new task" />
+      <input type="text" id="tagInput" placeholder="Category/Tag (optional)" />
       <select id="ratingInput">
         <option value="1">Rating 1</option>
         <option value="2">Rating 2</option>
@@ -32,30 +36,32 @@
         <option value="5">Rating 5</option>
       </select>
       <input type="date" id="dueDateInput" placeholder="Due Date" />
-      <button id="addTaskBtn">Add Task</button>
+      <button id="addTaskBtn" class="btn" tabindex="0">Add Task</button>
+      <button id="addTodayTaskBtn" class="btn" tabindex="0">Add Today's Task</button>
     </div>
-    <!-- Filters -->
+    <!-- Filters and Actions -->
     <div class="filters">
       <div class="filter-group">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="active">Active</button>
-        <button class="filter-btn" data-filter="completed">Completed</button>
+        <button class="filter-btn active" data-filter="all" tabindex="0">All</button>
+        <button class="filter-btn" data-filter="active" tabindex="0">Active</button>
+        <button class="filter-btn" data-filter="completed" tabindex="0">Completed</button>
+        <button class="filter-btn" data-filter="today" tabindex="0">Today</button>
       </div>
       <div>
-        <button class="clear-btn" id="clearCompletedBtn">Clear Completed</button>
-        <button class="clear-all-btn" id="clearAllBtn">Clear All</button>
+        <button class="btn clear-btn" id="clearCompletedBtn" tabindex="0">Clear Completed</button>
+        <button class="btn export-btn" id="exportTasksBtn" tabindex="0">Export Tasks</button>
+        <button class="btn clear-all-btn" id="clearAllBtn" tabindex="0">Clear All</button>
       </div>
     </div>
     <!-- Search Bar -->
     <div class="search-bar">
       <input type="text" id="searchInput" placeholder="Search tasks..." />
     </div>
-    <!-- Progress Bar & Task Count -->
+    <!-- Progress & Counters -->
     <div class="progress-container">
       <div class="progress-bar" id="progressBar"></div>
     </div>
     <div id="taskCount"></div>
-    <!-- Streak Counter -->
     <div id="streakCount"></div>
     <!-- Task List -->
     <ul id="taskList"></ul>
@@ -75,10 +81,16 @@
       </div>
     </div>
   </div>
-  <!-- Toast Container -->
+  <!-- Toast Notifications -->
   <div id="toastContainer"></div>
 
-  <!-- Link to JS file -->
+  <!-- Audio Elements for Enhanced Sound Effects -->
+  <audio id="completionSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" preload="auto"></audio>
+  <audio id="deleteSound" src="https://www.soundjay.com/button/sounds/button-10.mp3" preload="auto"></audio>
+  <audio id="achievementSound" src="https://www.soundjay.com/misc/sounds/small-bell-ring-01.mp3" preload="auto"></audio>
+  <audio id="newTaskSound" src="https://www.soundjay.com/button/sounds/button-09.mp3" preload="auto"></audio>
+
+  <!-- External Javascript -->
   <script src="script.js"></script>
 </body>
 </html>
