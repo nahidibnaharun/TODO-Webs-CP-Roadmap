@@ -1,14 +1,21 @@
+    // Global Variables and Settings
     let tasks = [];
     let currentFilter = 'all';
     let searchQuery = '';
+    let settings = { theme: 'light' };
+
+    // DOM Elements
     const taskList = document.getElementById("taskList");
     const taskInput = document.getElementById("taskInput");
+    const tagInput = document.getElementById("tagInput");
     const ratingInput = document.getElementById("ratingInput");
     const dueDateInput = document.getElementById("dueDateInput");
     const addTaskBtn = document.getElementById("addTaskBtn");
+    const addTodayTaskBtn = document.getElementById("addTodayTaskBtn");
     const filterButtons = document.querySelectorAll(".filter-btn");
     const clearCompletedBtn = document.getElementById("clearCompletedBtn");
     const clearAllBtn = document.getElementById("clearAllBtn");
+    const exportTasksBtn = document.getElementById("exportTasksBtn");
     const searchInput = document.getElementById("searchInput");
     const currentDateEl = document.getElementById("currentDate");
     const modeToggleBtn = document.getElementById("modeToggleBtn");
@@ -17,6 +24,16 @@
     const streakCountEl = document.getElementById("streakCount");
     let ratingChart, completionChart, streakChart;
 
+    // Audio Elements for sound effects
+    const completionSound = document.getElementById("completionSound");
+    const deleteSound = document.getElementById("deleteSound");
+    const achievementSound = document.getElementById("achievementSound");
+    const newTaskSound = document.getElementById("newTaskSound");
+    completionSound.volume = 0.7;
+    deleteSound.volume = 0.7;
+    achievementSound.volume = 0.7;
+    newTaskSound.volume = 0.7;
+
     // Toast Notification Function
     function showToast(message, duration = 3000) {
       const toastContainer = document.getElementById("toastContainer");
@@ -24,55 +41,46 @@
       toast.className = "toast";
       toast.textContent = message;
       toastContainer.appendChild(toast);
-      setTimeout(() => {
-        toast.remove();
-      }, duration);
+      setTimeout(() => { toast.remove(); }, duration);
     }
 
-    // Load tasks from localStorage
-    function loadTasks() {
+    // Load tasks and settings from localStorage
+    function loadData() {
       const storedTasks = localStorage.getItem("tasks");
-      if (storedTasks) {
-        tasks = JSON.parse(storedTasks);
+      if (storedTasks) { tasks = JSON.parse(storedTasks); }
+      const storedSettings = localStorage.getItem("settings");
+      if (storedSettings) {
+        const savedSettings = JSON.parse(storedSettings);
+        settings.theme = savedSettings.theme || 'light';
+      }
+      applySettings();
+    }
+    function saveData() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+      localStorage.setItem("settings", JSON.stringify(settings));
+    }
+
+    // Apply dark/light mode
+    function applySettings() {
+      if (settings.theme === "dark") {
+        document.body.classList.add("dark-mode");
+        modeToggleBtn.textContent = "Light Mode";
+      } else {
+        document.body.classList.remove("dark-mode");
+        modeToggleBtn.textContent = "Dark Mode";
       }
     }
-    // Save tasks to localStorage
-    function saveTasks() {
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
 
-    // Update current date
+    // Update current date display
     function updateCurrentDate() {
       const today = new Date();
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       currentDateEl.textContent = today.toLocaleDateString(undefined, options);
     }
-
-    // Dark/Light mode toggle
-    function toggleMode() {
-      document.body.classList.toggle("dark-mode");
-      if (document.body.classList.contains("dark-mode")) {
-        modeToggleBtn.textContent = "Light Mode";
-        localStorage.setItem("theme", "dark");
-      } else {
-        modeToggleBtn.textContent = "Dark Mode";
-        localStorage.setItem("theme", "light");
-      }
-    }
-    modeToggleBtn.addEventListener("click", toggleMode);
-    // Load theme from localStorage
-    (function loadTheme() {
-      const theme = localStorage.getItem("theme");
-      if (theme === "dark") {
-        document.body.classList.add("dark-mode");
-        modeToggleBtn.textContent = "Light Mode";
-      }
-    })();
-
     updateCurrentDate();
-    loadTasks();
+    loadData();
 
-    // Check if task is overdue
+    // Utility to check if task is overdue
     function isOverdue(task) {
       if (!task.dueDate) return false;
       const due = new Date(task.dueDate);
@@ -87,7 +95,7 @@
       const completed = tasks.filter(task => task.completed).length;
       const percent = total ? (completed / total) * 100 : 0;
       progressBar.style.width = percent + "%";
-      if(total === 0) {
+      if (total === 0) {
         taskCountEl.textContent = "";
       } else if (completed === total) {
         taskCountEl.textContent = "All tasks completed! Great job!";
@@ -103,12 +111,8 @@
       while (true) {
         const dateStr = date.toISOString().split("T")[0];
         const completedOnDate = tasks.some(task => task.completed && task.completedDate === dateStr);
-        if (completedOnDate) {
-          streak++;
-          date.setDate(date.getDate() - 1);
-        } else {
-          break;
-        }
+        if (completedOnDate) { streak++; date.setDate(date.getDate() - 1); }
+        else { break; }
       }
       return streak;
     }
@@ -119,7 +123,7 @@
       streakCountEl.textContent = "Current Streak: " + streak + " day" + (streak === 1 ? "" : "s");
     }
 
-    // Helper: Get last n dates as YYYY-MM-DD array
+    // Get last n dates as an array (YYYY-MM-DD)
     function getLastNDates(n) {
       const dates = [];
       const today = new Date();
@@ -160,10 +164,7 @@
           },
           options: {
             responsive: true,
-            animation: {
-              easing: 'easeOutQuart',
-              duration: 1000
-            },
+            animation: { easing: 'easeOutQuart', duration: 1000 },
             plugins: {
               legend: { display: false },
               tooltip: {
@@ -175,21 +176,15 @@
               }
             },
             scales: {
-              y: {
-                beginAtZero: true,
-                ticks: { stepSize: 1 },
-                grid: { color: 'rgba(0,0,0,0.1)' }
-              },
-              x: {
-                grid: { display: false }
-              }
+              y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.1)' } },
+              x: { grid: { display: false } }
             }
           }
         });
       }
     }
 
-    // Update Charts (Rating, Completion, Streak) and Progress/Counter
+    // Update all charts and counters
     function updateCharts() {
       updateRatingChart();
       updateCompletionChart();
@@ -201,10 +196,7 @@
     // Rating Chart
     function updateRatingChart() {
       const ratingCounts = [0, 0, 0, 0, 0];
-      tasks.forEach(task => {
-        const index = task.rating - 1;
-        ratingCounts[index]++;
-      });
+      tasks.forEach(task => { ratingCounts[task.rating - 1]++; });
       if (ratingChart) {
         ratingChart.data.datasets[0].data = ratingCounts;
         ratingChart.update();
@@ -238,10 +230,7 @@
           },
           options: {
             responsive: true,
-            animation: {
-              easing: 'easeOutQuart',
-              duration: 1000
-            },
+            animation: { easing: 'easeOutQuart', duration: 1000 },
             plugins: {
               legend: { display: false },
               tooltip: {
@@ -253,21 +242,15 @@
               }
             },
             scales: {
-              y: {
-                beginAtZero: true,
-                ticks: { stepSize: 1 },
-                grid: { color: 'rgba(0,0,0,0.1)' }
-              },
-              x: {
-                grid: { display: false }
-              }
+              y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.1)' } },
+              x: { grid: { display: false } }
             }
           }
         });
       }
     }
 
-    // Completion Chart
+    // Completion Chart (Active vs. Completed Tasks)
     function updateCompletionChart() {
       const activeCount = tasks.filter(task => !task.completed).length;
       const completedCount = tasks.filter(task => task.completed).length;
@@ -296,10 +279,7 @@
           },
           options: {
             responsive: true,
-            animation: {
-              easing: 'easeOutQuart',
-              duration: 1000
-            },
+            animation: { easing: 'easeOutQuart', duration: 1000 },
             plugins: {
               legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } },
               tooltip: {
@@ -315,17 +295,18 @@
       }
     }
 
-    // Render tasks
+    // Render Tasks List
     function renderTasks() {
       taskList.innerHTML = "";
+      const todayDate = new Date().toISOString().split("T")[0];
       const filteredTasks = tasks.filter(task => {
         if (currentFilter === "active" && task.completed) return false;
         if (currentFilter === "completed" && !task.completed) return false;
+        if (currentFilter === "today" && task.dueDate !== todayDate) return false;
         if (searchQuery && !task.text.toLowerCase().includes(searchQuery.toLowerCase())) return false;
         return true;
       });
-      filteredTasks.forEach(task => {
-        const idx = tasks.indexOf(task);
+      filteredTasks.forEach((task, idx) => {
         const li = document.createElement("li");
         li.className = "task-item fade-in";
         li.innerHTML = `
@@ -333,15 +314,24 @@
             <input type="checkbox" class="complete-checkbox" data-index="${idx}" ${task.completed ? "checked" : ""}>
             <div>
               <span class="task-text ${task.completed ? "completed" : ""}">${task.text}</span>
+              ${task.tag ? `<span class="task-tag">(Tag: ${task.tag})</span>` : ""}
               <div class="task-details">
                 <span>(Rating: ${task.rating})</span>
                 ${task.dueDate ? `<span class="${isOverdue(task) ? "overdue" : ""}"> - Due: ${task.dueDate}</span>` : ""}
               </div>
+              ${task.subtasks && task.subtasks.length ? `<ul class="subtask-list">
+                ${task.subtasks.map((sub, subIndex) => `
+                  <li class="subtask-item ${sub.completed ? "completed" : ""}">
+                    <input type="checkbox" class="subtask-checkbox" data-task-index="${idx}" data-subtask-index="${subIndex}" ${sub.completed ? "checked" : ""}>
+                    <span>${sub.text}</span>
+                  </li>`).join("")}
+              </ul>` : ""}
             </div>
           </div>
           <div class="task-actions">
-            <button class="edit-btn" data-index="${idx}">Edit</button>
-            <button class="delete-btn" data-index="${idx}">Delete</button>
+            <button class="btn edit-btn" data-index="${idx}">Edit</button>
+            <button class="btn delete-btn" data-index="${idx}">Delete</button>
+            <button class="btn add-subtask-btn" data-index="${idx}">Add Subtask</button>
           </div>
         `;
         taskList.appendChild(li);
@@ -349,26 +339,37 @@
       updateProgress();
     }
 
-    // Add task
+    // Event: Add Task (normal)
     addTaskBtn.addEventListener("click", () => {
       const text = taskInput.value.trim();
+      const tag = tagInput.value.trim();
       const rating = parseInt(ratingInput.value);
       const dueDate = dueDateInput.value;
-      if (!text) {
-        showToast("Please enter a task.");
-        return;
-      }
-      tasks.push({ text, rating, dueDate, completed: false, completedDate: null });
-      saveTasks();
-      taskInput.value = "";
-      ratingInput.value = "3";
-      dueDateInput.value = "";
-      renderTasks();
-      updateCharts();
+      if (!text) { showToast("Please enter a task."); return; }
+      tasks.push({ text, tag, rating, dueDate, completed: false, completedDate: null, subtasks: [] });
+      saveData();
+      taskInput.value = ""; tagInput.value = ""; ratingInput.value = "3"; dueDateInput.value = "";
+      renderTasks(); updateCharts();
+      newTaskSound.play();
       showToast("Task added!");
     });
 
-    // Filter buttons
+    // Event: Add Today's Task (auto-set due date)
+    addTodayTaskBtn.addEventListener("click", () => {
+      const text = taskInput.value.trim();
+      const tag = tagInput.value.trim();
+      const rating = parseInt(ratingInput.value);
+      if (!text) { showToast("Please enter a task."); return; }
+      const today = new Date().toISOString().split("T")[0];
+      tasks.push({ text, tag, rating, dueDate: today, completed: false, completedDate: null, subtasks: [] });
+      saveData();
+      taskInput.value = ""; tagInput.value = ""; ratingInput.value = "3"; dueDateInput.value = "";
+      renderTasks(); updateCharts();
+      newTaskSound.play();
+      showToast("Today's task added!");
+    });
+
+    // Filter Buttons Event
     filterButtons.forEach(btn => {
       btn.addEventListener("click", () => {
         filterButtons.forEach(b => b.classList.remove("active"));
@@ -378,40 +379,59 @@
       });
     });
 
-    // Clear completed tasks
+    // Event: Clear Completed Tasks
     clearCompletedBtn.addEventListener("click", () => {
       tasks = tasks.filter(task => !task.completed);
-      saveTasks();
-      renderTasks();
-      updateCharts();
+      saveData(); renderTasks(); updateCharts();
       showToast("Completed tasks cleared!");
     });
 
-    // Clear all tasks
+    // Event: Export Tasks as CSV
+    exportTasksBtn.addEventListener("click", () => {
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Task,Tag,Rating,Due Date,Completed,Completed Date\n";
+      tasks.forEach(task => {
+        const row = [
+          `"${task.text.replace(/"/g, '""')}"`,
+          task.tag || "",
+          task.rating,
+          task.dueDate || "",
+          task.completed,
+          task.completedDate || ""
+        ].join(",");
+        csvContent += row + "\n";
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "tasks.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // Event: Clear All Tasks
     clearAllBtn.addEventListener("click", () => {
       if (confirm("Are you sure you want to delete all tasks?")) {
         tasks = [];
-        saveTasks();
-        renderTasks();
-        updateCharts();
+        saveData(); renderTasks(); updateCharts();
         showToast("All tasks cleared!");
       }
     });
 
-    // Search tasks
+    // Event: Search Tasks
     searchInput.addEventListener("input", (e) => {
       searchQuery = e.target.value;
       renderTasks();
     });
 
-    // Task actions: delete, edit, complete toggle
+    // Task List Actions: Delete, Edit, Complete, Add Subtask, and Subtask Checkbox
     taskList.addEventListener("click", (e) => {
       const index = e.target.getAttribute("data-index");
       if (e.target.classList.contains("delete-btn")) {
         tasks.splice(index, 1);
-        saveTasks();
-        renderTasks();
-        updateCharts();
+        saveData(); renderTasks(); updateCharts();
+        deleteSound.play();
         showToast("Task deleted!");
       }
       if (e.target.classList.contains("edit-btn")) {
@@ -428,31 +448,69 @@
           showToast("Invalid date format.");
           return;
         }
+        let newTag = prompt("Edit task tag (optional):", tasks[index].tag || "");
         tasks[index].text = newText.trim();
         tasks[index].rating = newRating;
         tasks[index].dueDate = newDueDate;
-        saveTasks();
-        renderTasks();
-        updateCharts();
+        tasks[index].tag = newTag.trim();
+        saveData(); renderTasks(); updateCharts();
         showToast("Task updated!");
       }
       if (e.target.classList.contains("complete-checkbox")) {
         const isChecked = e.target.checked;
         tasks[index].completed = isChecked;
         if (isChecked) {
-          // Set completedDate if not already set
           if (!tasks[index].completedDate) {
             tasks[index].completedDate = new Date().toISOString().split("T")[0];
           }
+          completionSound.play();
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+          // Check if all tasks are completed; if so, play achievement sound
+          if (tasks.length && tasks.every(task => task.completed)) {
+            setTimeout(() => { achievementSound.play(); }, 500);
+            showToast("All tasks completed! Great job! 🎉");
+          }
         } else {
-          // Remove completedDate if unchecked
           tasks[index].completedDate = null;
         }
-        saveTasks();
-        renderTasks();
-        updateCharts();
+        saveData(); renderTasks(); updateCharts();
         showToast("Task status updated!");
       }
+      if (e.target.classList.contains("add-subtask-btn")) {
+        const subtaskText = prompt("Enter subtask text:");
+        if (!subtaskText || !subtaskText.trim()) return;
+        if (!tasks[index].subtasks) { tasks[index].subtasks = []; }
+        tasks[index].subtasks.push({ text: subtaskText.trim(), completed: false });
+        saveData(); renderTasks();
+        showToast("Subtask added!");
+      }
+      if (e.target.classList.contains("subtask-checkbox")) {
+        const taskIndex = e.target.getAttribute("data-task-index");
+        const subtaskIndex = e.target.getAttribute("data-subtask-index");
+        tasks[taskIndex].subtasks[subtaskIndex].completed = e.target.checked;
+        // If all subtasks are now complete, mark parent as complete.
+        const allSubs = tasks[taskIndex].subtasks;
+        if (allSubs && allSubs.length && allSubs.every(sub => sub.completed)) {
+          tasks[taskIndex].completed = true;
+          if (!tasks[taskIndex].completedDate) {
+            tasks[taskIndex].completedDate = new Date().toISOString().split("T")[0];
+          }
+          completionSound.play();
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        } else {
+          tasks[taskIndex].completed = false;
+          tasks[taskIndex].completedDate = null;
+        }
+        saveData(); renderTasks();
+        showToast("Subtask status updated!");
+      }
+    });
+
+    // Dark Mode Toggle
+    modeToggleBtn.addEventListener("click", () => {
+      settings.theme = settings.theme === "dark" ? "light" : "dark";
+      applySettings();
+      saveData();
     });
 
     // Initialize charts and render tasks on load
