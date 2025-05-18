@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codeforces DSA Tracker</title>
+  <style>
+    :root {
+      --bg-color: #2f3337;
+      --section-bg: #24292e;
+      --text-color: #adbac7;
+      --header-color: #58a6ff;
+      --button-bg: #30363d;
+      --button-hover: #484f58;
+      --solved-default: #8b949e;
+      --solved-active: #56d364;
+      --pinned-color: #f85149;
+      --border-radius: 0.75rem;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      color: var(--header-color);
+      margin-bottom: 2rem;
+    }
+
+    .topic {
+      background-color: var(--section-bg);
+      border-radius: var(--border-radius);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .topic-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--header-color);
+    }
+
+    .pin-btn {
+      background: none;
+      border: none;
+      color: var(--pinned-color);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .range-btn {
+      background-color: var(--button-bg);
+      color: var(--text-color);
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: var(--border-radius);
+      margin-top: 0.5rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .range-btn:hover {
+      background-color: var(--button-hover);
+    }
+
+    .solved {
+      margin-top: 0.5rem;
+      color: var(--solved-default);
+      font-size: 0.9rem;
+    }
+
+    .solved.done {
+      color: var(--solved-active);
+      font-weight: 600;
+    }
+
+    .instructions, .progress-summary {
+      margin-top: 2rem;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      background-color: var(--section-bg);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .reset-button {
+      display: block;
+      margin: 1.5rem auto 0;
+      padding: 0.6rem 1.2rem;
+      background-color: #f85149;
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+    }
+
+    .reset-button:hover {
+      background-color: #da3633;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Codeforces DSA Tracker</h1>
+
+    <div id="pinned"></div>
+    <hr style="border-color: #444; margin: 2rem 0;">
+    <div id="topics"></div>
+
+    <div class="instructions">
+      <strong>Instructions:</strong> Click the 📌 to pin/unpin topics. Click "Range" to mark a problem solved. Progress saved locally.
+    </div>
+
+    <button class="reset-button" onclick="resetProgress()">Reset All Progress</button>
+    <div id="progress" class="progress-summary"></div>
+  </div>
+
+  <script>
+    const topics = [
+      { section: 'Foundational', list: [
+        { name: 'Implementation/Ad-hoc', range: '800 - 1400' },
+        { name: 'Basic Math and Logic', range: '800 - 1300' },
+        { name: 'Arrays and Basic Operations', range: '800 - 1400' },
+        { name: 'Basic Sorting', range: '800 - 1200' },
+        { name: 'Greedy Algorithms (Easy)', range: '1000 - 1500' }
+      ] },
+      { section: 'Fundamental DS & Algorithms', list: [
+        { name: 'Linked Lists', range: '1200 - 1600' },
+        { name: 'Stacks and Queues', range: '1100 - 1600' },
+        { name: 'Binary Search', range: '1200 - 1700' },
+        { name: 'Recursion & Backtracking', range: '1200 - 1600' }
+      ] },
+      { section: 'Intermediate DS & Algorithms', list: [
+        { name: 'Trees (Basic)', range: '1300 - 1800' },
+        { name: 'BSTs', range: '1400 - 1800' },
+        { name: 'Heaps', range: '1400 - 1900' },
+        { name: 'Hash Tables', range: '1300 - 1800' },
+        { name: 'Graph Traversal', range: '1400 - 1900' },
+        { name: 'DP (1D & Simple 2D)', range: '1500 - 2100' },
+        { name: 'Divide & Conquer', range: '1500 - 2000' }
+      ] },
+      { section: 'Advanced Topics', list: [
+        { name: 'Advanced Graphs', range: '1900 - 2400+' },
+        { name: 'Advanced Trees', range: '1900 - 2400+' },
+        { name: 'DP (Advanced)', range: '2100 - 2600+' },
+        { name: 'String Algos', range: '1900 - 2400+' },
+        { name: 'Comp. Geometry', range: '1800 - 2300+' },
+        { name: 'Combinatorics & Prob.', range: '1800 - 2300+' },
+        { name: 'Number Theory', range: '1800 - 2300+' },
+        { name: 'Bit Manipulation', range: '1600 - 2100+' }
+      ] }
+    ];
+
+    const pinnedContainer = document.getElementById('pinned');
+    const topicsContainer = document.getElementById('topics');
+    const progressDiv = document.getElementById('progress');
+
+    let allKeys = [];
+
+    function render(list, container, showPinned) {
+      list.forEach(cat => {
+        cat.list.forEach(topic => {
+          const key = topic.name.replace(/\s+/g, '_');
+          allKeys.push(key);
+          const isPinned = localStorage.getItem(key + '_pin') === 'true';
+          if ((showPinned && !isPinned) || (!showPinned && isPinned)) return;
+
+          const solvedCount = parseInt(localStorage.getItem(key) || 0);
+
+          const div = document.createElement('div');
+          div.className = 'topic';
+
+          const header = document.createElement('div');
+          header.className = 'topic-header';
+          header.innerHTML = `<span>${topic.name}</span><button class='pin-btn'>📌</button>`;
+          header.querySelector('.pin-btn').onclick = () => {
+            localStorage.setItem(key + '_pin', (!isPinned).toString());
+            location.reload();
+          };
+          div.appendChild(header);
+
+          const btn = document.createElement('button');
+          btn.className = 'range-btn';
+          btn.textContent = `Range: ${topic.range}`;
+          btn.onclick = () => {
+            const newCount = solvedCount + 1;
+            localStorage.setItem(key, newCount);
+            location.reload();
+          };
+          div.appendChild(btn);
+
+          const solved = document.createElement('div');
+          solved.className = 'solved' + (solvedCount > 0 ? ' done' : '');
+          solved.textContent = `Solved: ${solvedCount}`;
+          div.appendChild(solved);
+
+          container.appendChild(div);
+        });
+      });
+    }
+
+    function resetProgress() {
+      allKeys.forEach(k => {
+        localStorage.removeItem(k);
+        localStorage.removeItem(k + '_pin');
+      });
+      location.reload();
+    }
+
+    function updateProgress() {
+      const total = allKeys.length;
+      const solvedTopics = allKeys.filter(k => parseInt(localStorage.getItem(k) || 0) > 0).length;
+      progressDiv.textContent = `Progress: ${solvedTopics} / ${total} topics solved at least once.`;
+    }
+
+    render(topics, pinnedContainer, true);
+    render(topics, topicsContainer, false);
+    updateProgress();
+  </script>
+</body>
+</html>
