@@ -20,8 +20,8 @@ A dual-purpose **task manager** and **competitive programming progress tracker**
 
 > *(Add screenshots here if you can)*  
 > Example:
-> ![Homepage Screenshot](![image](https://github.com/user-attachments/assets/33b4e016-0f60-409f-bf8e-981cca6017fe))
-> ![Tracker Screenshot](![image](https://github.com/user-attachments/assets/a8f96c1b-ce71-4fac-b526-bd819947bb7a))
+> ![Homepage Screenshot]![image](https://github.com/user-attachments/assets/33b4e016-0f60-409f-bf8e-981cca6017fe)
+> ![Tracker Screenshot]![image](https://github.com/user-attachments/assets/a8f96c1b-ce71-4fac-b526-bd819947bb7a)
 
 ---
 
